@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Nghe Podcast Chữa Lành</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #b3d336 0%, #d2ff52 100%);
+      min-height: 100vh; margin:0;padding:0;
+      font-family: Arial, sans-serif;
+    }
+    .pattern {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .pattern span {
+      position: absolute;
+      width: 60px; height: 60px;
+      background: pink;
+      border-radius: 50% 48% 60% 47%;
+      opacity: 0.18;
+      animation: float 18s infinite linear;
+    }
+    .pattern .c1 { left: 0vw; top: 5vh; }
+    .pattern .c2 { left: 65vw; top: 25vh; animation-delay: 7s;}
+    .pattern .c3 { left: 30vw; top: 75vh; animation-delay: 12s;}
+    .pattern .c4 { left: 80vw; top: 70vh; animation-delay: 18s;}
+    @keyframes float {
+      to { transform: translateY(-30px) scale(1.05);}
+    }
+    h1 {
+      color: #ee57b0; text-align: center; margin-top: 32px;
+    }
+    .feed {
+      z-index: 1; position: relative;
+      background: rgba(255,255,255,0.88);
+      border-radius: 18px;
+      max-width: 850px; margin: 32px auto 0; padding: 32px 24px;
+      box-shadow: 0 8px 30px #abbf0e22;
+    }
+    .item {
+      margin-bottom: 40px; padding-bottom: 10px; border-bottom: 1px solid #eed1df;
+    }
+    .desc { color: #393100; }
+    .cmtbox { margin-top: 8px; }
+    .emojis button {
+      background: none; border: none; cursor: pointer; font-size:1.5em; margin-right:7px;
+      filter: grayscale(40%); transition: .15s;
+      opacity:0.88;
+    }
+    .emojis button.active { filter:none; text-shadow: 0px 0px 8px #fc0ab240;}
+    .cmts { margin: 8px 0 2px 0; }
+    .cmt {
+      background: #f1f8db;
+      padding: 7px 12px;
+      border-radius: 11px;
+      margin: 5px 0;
+      display: inline-block;
+      font-size: 0.97em;
+    }
+    .cnote { color: #666; font-size:.94em; }
+    input[type=text] {
+      padding: 7px; border-radius: 7px; border: 1px solid #b3d336; width: 72%;
+    }
+    button.submit {
+      padding: 7px 14px; border-radius: 7px; border:0; background:#ee57b0; color:#fff; margin-left:8px; font-size:1em;
+    }
+    .time { color: #4d5810; font-size: 0.93em;}
+  </style>
+</head>
+<body>
+  <div class="pattern">
+    <span class="c1"></span><span class="c2"></span>
+    <span class="c3"></span><span class="c4"></span>
+  </div>
+  <h1>🌿 Podcast đã duyệt - Cùng nghe & chữa lành 💚</h1>
+  <div class="feed" id="feed"></div>
+  <script>
+    function emojiList() {
+      return [
+        {id:'like', label:'👍'}, {id:'cool', label:'😍'},
+        {id:'thinking', label:'🤔'}, {id:'sad', label:'😢'}, {id:'heart', label:'❤️'}
+      ]
+    }
+    function loadFeed(){
+      let pod = JSON.parse(localStorage.getItem("podcasts") || "[]");
+      pod = pod.filter(p=>p.approved);
+      const feed = document.getElementById("feed");
+      feed.innerHTML = '';
+      if (!pod.length) { feed.innerHTML = "<i>Chưa có podcast nào được duyệt.</i>"; return;}
+      pod.forEach(p=>{
+        // bình luận và cảm xúc
+        let reacts = JSON.parse(localStorage.getItem("react_"+p.id)||"{}");
+        let cmts = JSON.parse(localStorage.getItem("cmts_"+p.id)||"[]");
+        let el = document.createElement("div"); el.className="item";
+        
+        let emojihtml = emojiList().map(e=>`
+          <button onclick="react('${p.id}','${e.id}')" class="${reacts[e.id]?'active':''}">
+            ${e.label} <span>${reacts[e.id]||''}</span>
+          </button>
+        `).join('');
+        let cmtlist = cmts.map(c=>`<div class="cmt">${c}</div>`).join("");
+        el.innerHTML = `
+          <span class="desc">${p.desc}</span><br>
+          <span class="time">Gửi lúc: ${new Date(p.created).toLocaleString("vi-VN")}</span><br>
+          <audio src="${p.audio}" controls style="width:310px"></audio>
+          <div class="emojis">${emojihtml}</div>
+          <div class="cmtbox">
+            <b>Bình luận:</b> 
+            <form onsubmit="return addCmt('${p.id}',this)">
+              <input type="text" maxlength="80" placeholder="Nhập bình luận...">
+              <button class="submit">Gửi</button>
+            </form>
+            <div class="cmts">${cmtlist||'<span class="cnote">Chưa có bình luận.</span>'}</div>
+          </div>
+        `;
+        feed.appendChild(el);
+      });
+    }
+    window.onload = loadFeed;
+    window.react = function(id,eid){
+      let key = "react_"+id;
+      let reacts = JSON.parse(localStorage.getItem(key)||"{}");
+      reacts[eid] = reacts[eid]? reacts[eid]+1 : 1;
+      localStorage.setItem(key, JSON.stringify(reacts));
+      loadFeed();
+      return false;
+    }
+    window.addCmt = function(id,f){
+      let ip = f.querySelector('input');
+      let c = ip.value.trim();
+      if(!c) return false;
+      let key = "cmts_"+id;
+      let arr = JSON.parse(localStorage.getItem(key)||"[]");
+      arr.push(c);
+      localStorage.setItem(key, JSON.stringify(arr));
+      ip.value = '';
+      loadFeed();
+      return false;
+    }
+  </script>
+</body>
+</html>

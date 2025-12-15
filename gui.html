@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Gửi Podcast Chữa Lành Tân Sinh Viên</title>
+  <style>
+    body {
+      margin: 0; padding: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #b3d336 0%, #d2ff52 100%);
+      position: relative;
+      font-family: Arial, sans-serif;
+    }
+    .pattern { position: fixed; inset: 0; pointer-events: none; z-index: 0;}
+    .pattern span { position: absolute; width: 60px; height: 60px; background: pink; border-radius: 50% 40% 60% 50%/50% 60% 40% 50%; opacity: 0.25; animation: float 12s infinite linear;}
+    .pattern .c1 { left: 10vw; top: 10vh; }
+    .pattern .c2 { left: 60vw; top: 30vh; animation-delay: 2s;}
+    .pattern .c3 { left: 30vw; top: 60vh; animation-delay: 4s;}
+    .pattern .c4 { left: 70vw; top: 80vh; animation-delay: 6s;}
+    @keyframes float { to { transform: translateY(-40px) scale(1.2);}}
+    .form-box {
+      z-index: 1;
+      position: relative;
+      background: rgba(255,255,255,0.85);
+      border-radius: 15px;
+      max-width: 420px; margin: 70px auto; padding: 32px 24px;
+      box-shadow: 0 8px 24px #abbf0e33;
+    }
+    h1 { color: #ee57b0; text-align: center;}
+    label { display: block; margin: 14px 0 6px; font-weight: bold;}
+    input[type=file], input[type=text] { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #b3d336; color: #333; background: #f8fff0;}
+    textarea { width: 100%; border-radius: 5px; min-height: 60px; padding: 8px; border: 1px solid #b3d336; background: #f8fff0;}
+    button { margin-top: 15px; display: block; width: 100%; background: #ee57b0; color: white; border: none; border-radius: 7px; font-size: 1.1em; padding: 10px; cursor: pointer; transition: background 0.2s;}
+    button:hover { background: #b5158c; }
+    .note { color: #1a3500; font-size: .94em;}
+    .ttsbox { background:#fafbf1; border:1.5px solid #b4cc73; border-radius:12px; padding:18px 11px 12px 11px; margin:10px 0 20px 0;}
+    .ttsbox label {font-weight:bold;}
+    .ttsbox textarea {margin-top:4px;}
+    .ttsgenbtn { background:#8fd62c; color:white; border:none; border-radius:8px; margin-top:8px; width:auto; display:inline-block; font-size:1em; padding:6px 20px;}
+    .ttsgenbtn:hover { background:#60b015;}
+    .ttsplay {margin-left:10px;}
+    .aipreview audio {margin-top: 6px;}
+    .aipreview {color: #92626c; font-size:.97em;}
+    .orbox {margin:12px 0 12px 0; text-align:center; color:#914e81; font-size:1.1em; font-weight:bold;}
+    .msg {margin-top:7px; color: #34623f; font-size: 1em;}
+  </style>
+</head>
+<body>
+  <div class="pattern">
+    <span class="c1"></span>
+    <span class="c2"></span>
+    <span class="c3"></span>
+    <span class="c4"></span>
+  </div>
+  <form class="form-box" id="podcastForm">
+    <h1>🪴 Gửi Podcast 3 phút chữa lành</h1>
+    <!-- TTS AI BOX -->
+    <div class="ttsbox">
+      <label>AI đọc thay bạn (Text-to-Speech):</label>
+      <textarea id="aiText" maxlength="350" placeholder="Nhập nội dung muốn AI đọc lên tiếng Việt..."></textarea>
+      <button type="button" class="ttsgenbtn" onclick="generateAI()">Chuyển văn bản thành âm thanh</button>
+      <button type="button" class="ttsgenbtn ttsplay" onclick="playAI()">🔊 Nghe thử</button>
+      <div class="aipreview" id="aiprev"></div>
+    </div>
+    <div class="orbox">Hoặc tự gửi file&nbsp;🎤</div>
+    <label>Chọn file âm thanh (mp3, wav, m4a) <span style="color:red">*</span></label>
+    <input type="file" accept="audio/*" id="audio"/>
+    <p class="note">Chỉ nhận file âm thanh, tối đa 3 phút!</p>
+    <label>Chú thích file âm thanh <span style="color:red">*</span></label>
+    <textarea id="desc" maxlength="200" required placeholder="Gõ chú thích nhẹ nhàng..."></textarea>
+    <button type="submit">Gửi Podcast ✨</button>
+    <div class="msg" id="msg"></div>
+  </form>
+  <script>
+    // ------ TTS AI chuyển văn bản sang mp3 base64
+    let lastBlobAI = null;
+    function generateAI() {
+      const text = document.getElementById('aiText').value.trim();
+      const aiprev = document.getElementById('aiprev');
+      lastBlobAI = null;
+      aiprev.innerHTML = '';
+      if (!text) {
+        aiprev.innerHTML = 'Bạn cần nhập nội dung để AI đọc!';
+        return;
+      }
+      aiprev.innerHTML = "Đang tạo file AI đọc...";
+      // Sử dụng SpeechSynthesisUtterance và ghi thành file bằng MediaRecorder
+      let synth = window.speechSynthesis;
+      let utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'vi-VN';
+
+      // tìm voice tiếng Việt (nếu có)
+      let voices = synth.getVoices();
+      let viVoice = voices.find(v=>v.lang && v.lang.startsWith('vi'));
+      if(viVoice) utter.voice = viVoice;
+
+      // tạo audio và mediaRecorder
+      const audio = document.createElement('audio');
+      audio.controls = true;
+      window.recStream && window.recStream.getTracks().forEach(t=>t.stop());
+
+      // Sử dụng AudioContext để ghi lại
+      let context = new (window.AudioContext || window.webkitAudioContext)();
+      let dest = context.createMediaStreamDestination();
+      let recorder = new MediaRecorder(dest.stream);
+      let chunks = [];
+      utter.onstart = function(){
+        aiprev.innerHTML = "AI đang đọc...";
+      };
+      recorder.ondataavailable = e => { if(e.data.size>0) chunks.push(e.data);}
+      recorder.onstop = function(){
+        let blob = new Blob(chunks, {type:'audio/webm'});
+        lastBlobAI = blob;
+        const url = URL.createObjectURL(blob);
+        audio.src = url;
+        aiprev.innerHTML = "<b>File âm thanh AI đọc:</b><br>";
+        aiprev.appendChild(audio);
+      };
+      // connect TTS to destination
+      let source = context.createMediaStreamSource(dest.stream);
+      utter.onend = function(){
+        recorder.stop();
+        context.close();
+      };
+      // synth.speak không connect đc context, ta dùng hack bằng SpeechSynthesisUtterance và capture output hệ thống nếu được
+      window.speechSynthesis.speak(utter);
+      recorder.start();
+      setTimeout(()=>{ if(recorder.state=="recording") recorder.stop(); },14000); // auto stop nếu lỗi
+    }
+
+    function playAI() {
+      const text = document.getElementById('aiText').value.trim();
+      if(!text) return alert("Bạn cần nhập văn bản!");
+      let utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'vi-VN';
+      let voices = window.speechSynthesis.getVoices();
+      let viVoice = voices.find(v=>v.lang && v.lang.startsWith('vi'));
+      if(viVoice) utter.voice = viVoice;
+      speechSynthesis.speak(utter);
+    }
+
+    // Khi submit gửi podcast
+    const form = document.getElementById('podcastForm');
+    form.onsubmit = function(e){
+      e.preventDefault();
+      const msg = document.getElementById("msg");
+      msg.textContent = "";
+      let fileInput = document.getElementById('audio');
+      let desc = document.getElementById('desc').value.trim();
+      let file = fileInput.files[0];
+      // Nếu đã có audio AI (lastBlobAI), ưu tiên dùng nó
+      if(lastBlobAI){
+        let reader = new FileReader();
+        reader.onload = function(ev){
+          let podcasts = JSON.parse(localStorage.getItem("podcasts")||"[]");
+          let id = "p_" + Date.now();
+          podcasts.push({
+            id, desc, audio: ev.target.result, approved: false, created: new Date().toISOString()
+          });
+          localStorage.setItem("podcasts", JSON.stringify(podcasts));
+          lastBlobAI = null;
+          document.getElementById('aiText').value = '';
+          document.getElementById('desc').value = '';
+          document.getElementById('aiprev').innerHTML = '';
+          msg.textContent = "Đã gửi file AI đọc! Chờ kiểm duyệt.";
+        };
+        reader.readAsDataURL(lastBlobAI);
+        return;
+      }
+      if(!file) return msg.textContent = "Bạn cần chọn file âm thanh hoặc dùng AI đọc!";
+      if (!file.type.startsWith('audio')) return msg.textContent = "Chỉ chấp nhận file âm thanh!";
+      // Check 3 phút
+      let url = URL.createObjectURL(file);
+      let audio = document.createElement('audio');
+      audio.src = url;
+      audio.onloadedmetadata = function(){
+        if(audio.duration > 181) { msg.textContent = "File vượt quá 3 phút!"; return;}
+        let podcasts = JSON.parse(localStorage.getItem("podcasts")||"[]");
+        let id = "p_" + Date.now();
+        let reader = new FileReader();
+        reader.onload = function(ev) {
+          podcasts.push({
+            id, desc, audio: ev.target.result, approved: false, created: new Date().toISOString()
+          });
+          localStorage.setItem("podcasts", JSON.stringify(podcasts));
+          fileInput.value = '';
+          document.getElementById('desc').value = '';
+          msg.textContent = "Đã gửi! Chờ kiểm duyệt.";
+        };
+        reader.readAsDataURL(file);
+      };
+      audio.onerror = ()=>msg.textContent="Không thể đọc file âm thanh!";
+    };
+  </script>
+</body>
+</html>
