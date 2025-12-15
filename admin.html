@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Kiểm duyệt Podcast</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #b3d336 0%, #d2ff52 100%);
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+    }
+    .pattern {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .pattern span {
+      position: absolute;
+      width: 60px; height: 60px;
+      background: pink;
+      border-radius: 40% 60% 50% 50%/50% 40% 60% 50%;
+      opacity: 0.22;
+      animation: float 16s infinite linear;
+    }
+    .pattern .c1 { left: 20vw; top: 10vh; }
+    .pattern .c2 { left: 80vw; top: 20vh; animation-delay: 2s;}
+    .pattern .c3 { left: 65vw; top: 65vh; animation-delay: 7s;}
+    .pattern .c4 { left: 10vw; top: 80vh; animation-delay: 12s;}
+    @keyframes float {
+      to { transform: translateY(-30px) scale(1.08);}
+    }
+    h1 {
+      color: #ee57b0; text-align: center; margin-top: 30px;
+    }
+    .podlist {
+      margin: 32px auto 0; padding: 18px; max-width: 650px; background: rgba(255,255,255,0.88); border-radius: 18px;
+      box-shadow: 0 8px 26px #abbf0e33;
+      z-index: 1; position: relative;
+    }
+    .podcast {
+      margin-bottom: 32px; padding-bottom: 10px; border-bottom: 1px solid #eed1df;
+    }
+    .desc { color: #393100; }
+    .btns { margin: 12px 0;}
+    button {
+      padding: 8px 22px; border-radius: 5px;
+      background: #ee57b0; color: white; border: 0; font-size: 1em; cursor: pointer;
+      margin-right: 15px;
+    }
+    button.deny { background: #aaa;}
+    .time { color: #4d5810; font-size: 0.93em;}
+    /* login overlay */
+    #loginOverlay {
+      position: fixed; inset: 0; z-index: 10;
+      background: rgba(230,255,220,0.94);
+      display: flex;align-items: center;justify-content: center;
+    }
+    #loginBox {
+      background: #fff;
+      border-radius: 18px;
+      padding: 45px 25px 30px 25px;
+      box-shadow: 0 8px 26px #81db0e33;
+      text-align: center;
+      min-width: 290px;
+    }
+    #loginBox h2 {
+      color: #25874e; margin-bottom: 19px;
+    }
+    #loginBox input[type=password] {
+      padding: 10px; border-radius: 8px; border: 1.5px solid #b3d336; font-size: 1.1em; width: 92%;
+      margin-bottom: 17px; margin-top: 8px;
+    }
+    #loginBox button {
+      padding: 8px 35px; border-radius: 10px; font-size: 1.1em; border: none; background: #ee57b0; color: white; font-weight: bold; cursor: pointer;
+      margin-top: 8px;
+    }
+    #loginBox .error {
+      color: #bf283a;
+      margin-top: 10px;
+      font-size: 1.08em;
+    }
+  </style>
+</head>
+<body>
+  <div class="pattern">
+    <span class="c1"></span><span class="c2"></span>
+    <span class="c3"></span><span class="c4"></span>
+  </div>
+  
+  <!-- LOGIN OVERLAY -->
+  <div id="loginOverlay">
+    <form id="loginBox" onsubmit="return checkLogin()">
+      <h2>🔐 Đăng nhập kiểm duyệt</h2>
+      <div>Vui lòng nhập mật khẩu để vào trang kiểm duyệt!</div>
+      <input type="password" id="pwd" placeholder="Nhập mật khẩu..." autocomplete="off" required />
+      <br>
+      <button type="submit">Đăng nhập</button>
+      <div class="error" id="err"></div>
+    </form>
+  </div>
+
+  <h1>Kiểm duyệt Podcast</h1>
+  <div class="podlist" id="plist"></div>
+  <script>
+    // ===== LOGIN PROTECTION =====
+    function checkLogin(){
+      var input = document.getElementById("pwd").value;
+      if(input === "bidobuonngu"){
+        document.getElementById("loginOverlay").style.display="none";
+        return false;
+      }else{
+        document.getElementById("err").textContent = "Sai mật khẩu! Hỏi admin nhé";
+        return false;
+      }
+    }
+    // Enter to submit
+    document.getElementById("pwd").addEventListener("keydown", function(e){
+      if(e.key === 'Enter') document.getElementById("loginBox").dispatchEvent(new Event('submit'));
+    });
+    // ===== PODCAST MODERATION =====
+    function loadPodcasts(){
+      let pod = JSON.parse(localStorage.getItem("podcasts") || "[]");
+      pod = pod.filter(p=>!p.approved);
+      const box = document.getElementById("plist");
+      box.innerHTML = '';
+      if (pod.length == 0) { box.innerHTML = "<i>Không còn podcast chờ duyệt.</i>"; return; }
+      pod.forEach(p=>{
+        let el = document.createElement("div");
+        el.className = "podcast";
+        el.innerHTML = `
+          <b>Chú thích:</b> <span class="desc">${p.desc}</span><br>
+          <span class="time">Gửi lúc: ${new Date(p.created).toLocaleString("vi-VN")}</span><br>
+          <audio src="${p.audio}" controls style="width:255px"></audio>
+          <div class="btns">
+            <button onclick="approvePodcast('${p.id}')">Duyệt</button>
+            <button class="deny" onclick="denyPodcast('${p.id}')">Loại</button>
+          </div>
+        `;
+        box.appendChild(el);
+      });
+    }
+    function approvePodcast(id){
+      let pod = JSON.parse(localStorage.getItem("podcasts")||"[]");
+      pod = pod.map(x=> x.id===id ? {...x, approved:true } : x);
+      localStorage.setItem("podcasts", JSON.stringify(pod));
+      loadPodcasts();
+    }
+    function denyPodcast(id){
+      let pod = JSON.parse(localStorage.getItem("podcasts")||"[]");
+      pod = pod.filter(x=> x.id!==id);
+      localStorage.setItem("podcasts", JSON.stringify(pod));
+      loadPodcasts();
+    }
+    window.onload = function() {
+      if(document.getElementById("loginOverlay").style.display=="none")loadPodcasts();
+    }
+    // Nếu login thành công thì show danh sách
+    document.getElementById("loginBox").addEventListener("submit", function(){
+      setTimeout(loadPodcasts, 50);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Podcast 3 Phút Chữa Lành</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@700&family=Montserrat:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: radial-gradient(circle at 50% 30%, #fde8f4 0%, #fadce9 100%);
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Montserrat', Arial, sans-serif;
+      position: relative;
+      overflow-x: hidden;
+    }
+    .badge {
+      display: inline-block;
+      padding: 8px 22px;
+      background: #fde0fa;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 1.07em;
+      color: #933c99;
+      margin: 32px auto 0;
+      text-align: center;
+      box-shadow: 0 1px 9px #dfabd233;
+      letter-spacing: .03em;
+    }
+    h1 {
+      text-align: center;
+      margin: 24px 0 10px 0;
+      font-family: 'Kalam', cursive, Arial, sans-serif;
+      font-size: 3em;
+      font-weight: 700;
+      color: #264e16;
+      letter-spacing: .04em;
+    }
+    h1 .green { color: #5db21f; }
+    h1 .pink { color: #ee57b0; }
+    .desc {
+      text-align: center;
+      color: #34623f;
+      font-size: 1.18em;
+      margin-bottom: 32px;
+      font-family: 'Montserrat', Arial, sans-serif;
+      margin-top: 8px;
+    }
+    .center-btns {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin: 28px 0 36px 0;
+    }
+    .podbtn, .adminbtn {
+      padding: 16px 38px;
+      font-size: 1.25em;
+      border: none;
+      border-radius: 15px;
+      font-weight: bold;
+      background: #8fd62c;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 2px 12px #abc4111a;
+      transition: background 0.15s, box-shadow 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      justify-content: center;
+    }
+    .podbtn:hover, .adminbtn:hover { background: #4dad27;}
+    .podbtn.secondary {
+      background: white;
+      border: 2px solid #ee90b9;
+      color: #533156;
+      box-shadow: 0 2px 9px #ca599d18;
+    }
+    .podbtn.secondary:hover { background: #ffe9f6; border-color: #bc4e85;}
+    .adminbtn {
+      padding: 10px 23px;
+      font-size: 1em;
+      border-radius: 14px;
+      background: #cbc7ee;
+      color: #442584;
+      border: none;
+      margin-top: 8px;
+      margin-left: 8px;
+      font-weight: 600;
+      transition:.15s;
+    }
+    .adminbtn:hover {background:#a58fee; color: #fff;}
+    .section-cards {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin: 42px 0 10px;
+      flex-wrap: wrap;
+    }
+    .card {
+      background: #fffdfaee;
+      border-radius: 20px;
+      box-shadow: 0 2px 21px #bfc99a14;
+      padding: 38px 36px 21px 36px;
+      min-width: 230px;
+      max-width: 250px;
+      text-align: center;
+      z-index: 5;
+      margin-bottom: 18px;
+      margin-top: 0;
+    }
+    .card-icon {
+      font-size: 2.3em;
+      margin-bottom: 15px;
+      display: block;
+    }
+    .ctitle {
+      color: #255725;
+      font-size: 1.19em;
+      font-family: 'Kalam', cursive, Arial, sans-serif;
+      margin-bottom: 8px;
+      margin-top: 0;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .ctitle.green { color: #86be34;}
+    .ctitle.pink { color: #e96fa2;}
+    .cdesc {
+      color: #48773f;
+      font-size: 1em;
+      font-family: 'Montserrat', Arial, sans-serif;
+    }
+    .deco-heart, .deco-leaf, .deco-spark {
+      position: fixed;
+      opacity: 0.18;
+      z-index: 0;
+      pointer-events: none;
+      font-size: 2.6em;
+    }
+    .deco-heart { left: 3vw; top: 7vh; color: #ee57b0;}
+    .deco-leaf { right: 5vw; top: 13vh; color: #b3d336;}
+    .deco-spark1 { left: 7vw; bottom: 11vh; color: #b3d336; font-size: 2.09em;}
+    .deco-heart2 { right: 4vw; bottom: 9vh; color: #ee57b0; font-size:2.09em;}
+    .footer-admin {
+      text-align: right;
+      font-size: 0.97em;
+      color: #bbb;
+      margin-right: 16px;
+      margin-top: 65px;
+    }
+    .footer-admin a { color: #cb419b; text-decoration: none;}
+    .footer-admin a:hover { color: #87ab30;}
+    @media (max-width:900px){
+      .section-cards { flex-direction: column; align-items: center;}
+    }
+    @media (max-width:620px){
+      h1 { font-size: 2em;}
+      .card {padding: 20px 12px 14px 12px; min-width: 150px;}
+      .center-btns {flex-direction:column;gap:17px;}
+    }
+  </style>
+</head>
+<body>
+  <span class="deco-heart">♡</span>
+  <span class="deco-leaf">🍃</span>
+  <span class="deco-spark1">✦</span>
+  <span class="deco-heart2">♡</span>
+  <div class="badge">✧ Healing Station</div>
+  <h1>
+    Podcast <span class="green">3 Phút</span><br>
+    <span class="pink">Chữa Lành</span>
+  </h1>
+  <div class="desc">
+    Dành cho tân sinh viên - Chia sẻ và lắng nghe những câu chuyện ấm áp từ những người bạn xung quanh 💚
+  </div>
+
+  <div class="center-btns">
+    <button class="podbtn" onclick="window.location.href='gui.html'"><span>🎤</span> Gửi Podcast</button>
+    <button class="podbtn secondary" onclick="window.location.href='d.html'"><span>🎧</span> Nghe Podcast</button>
+    <button class="adminbtn" onclick="window.location.href='amd.html'"><span>🔑</span> Đăng nhập admin</button>
+  </div>
+
+  <div class="section-cards">
+    <div class="card">
+      <div class="card-icon">🎤</div>
+      <div class="ctitle green">Ghi Âm & Gửi</div>
+      <div class="cdesc">Chia sẻ câu chuyện, lời động viên trong 3 phút</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">💗</div>
+      <div class="ctitle pink">Thả Cảm Xúc</div>
+      <div class="cdesc">Bày tỏ cảm xúc với các biểu tượng dễ thương</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎧</div>
+      <div class="ctitle">Nghe & Bình Luận</div>
+      <div class="cdesc">Lắng nghe & gửi lời động viên</div>
+    </div>
+  </div>
+  <div class="footer-admin">
+    <a href="admin.html" title="Chỉ cho admin kiểm duyệt">Kiểm duyệt Podcast</a>
+  </div>
+</body>
+</html>
+</html>
